@@ -16,21 +16,20 @@
 void recv_icmp(int sock){
     char recvbuf[1024];
     
+    // to store sender's info 
+    struct sockaddr *sender=malloc(sizeof(struct sockaddr));
+    socklen_t size=sizeof(sender);
 
     //store icmp packets to recvbuf
-    r=recvfrom(sock,recvbuf,sizeof(recvbuf),0,&sender,&size);
+    int r=recvfrom(sock,recvbuf,sizeof(recvbuf),0,sender,&size);
     if(r==-1){
         perror("recvfrom error");
         return;
     }
 
-
-    //converting the bytes in recev to meaningful output
-    struct icmp *icmp;
-    icmp = (struct icmp *)(recvbuf+20);                           //i think first 20 byte is ip header so +20
-
-
-
+    //extracting sender's ip from sender struct and printing it
+    struct sockaddr_in* s = (struct sockaddr_in*)sender;
+    printf("%s\n", inet_ntoa(s->sin_addr));
 
 }
 
@@ -42,7 +41,11 @@ int main(){
     if((rawsock=socket(AF_INET,SOCK_RAW,IPPROTO_ICMP))==-1){
                 perror("socket error ");
                 return -1;
-        }
+    }
 
+
+    for(;;){
+    	recv_icmp(rawsock);
+	}
 
 }
